@@ -8,9 +8,15 @@ import it.unibo.inner.api.Predicate;
 public class IterableWithPolicyImpl<T> implements IterableWithPolicy<T>{
 
     private final T[] elements;
+    private Predicate<T> filter;
 
     public IterableWithPolicyImpl(T[] elements) {
+        this(elements, item -> true);
+    }
+
+    public IterableWithPolicyImpl(T[] elements, Predicate<T> filter) {
         this.elements = elements;
+        this.filter = filter;
     }
     
     @Override
@@ -24,20 +30,31 @@ public class IterableWithPolicyImpl<T> implements IterableWithPolicy<T>{
 
         @Override
         public boolean hasNext() {
-            return currentIndex < elements.length;
+            while (currentIndex < elements.length) {
+                if (filter == null || filter.test(elements[currentIndex]) ) {
+                    return true;
+                }
+                currentIndex++;
+            }
+            return false;
         }
 
         @Override
         public T next() {
-            return elements[currentIndex++];
+            while (currentIndex < elements.length) {
+                if (filter == null || filter.test(elements[currentIndex])) {
+                    return elements[currentIndex++];
+                }
+                currentIndex++;
+            }
+            throw new java.util.NoSuchElementException();
         }
         
     }
 
     @Override
     public void setIterationPolicy(Predicate<T> filter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setIterationPolicy'");
+        this.filter = filter;
     }
 
     
